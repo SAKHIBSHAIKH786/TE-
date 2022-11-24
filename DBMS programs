@@ -1,0 +1,865 @@
+create table library(rollno int,name char(10),dateofissue date,nameofbook 
+char(10),status char(10)); 
+create table library_audit(rollno int,name char(10),dateofissue 
+date,nameofbook char(10),status char(10),ts timestamp,command 
+varchar2(14)); 
+create or replace trigger at1 after update or delete or insert on 
+library for each row 
+begin 
+if updating then 
+insert into library_audit 
+values(:old.rollno,:old.name,:old.dateofissue,:old.nameofbook,:old.status
+,current_timestamp,'update'); 
+elsif deleting then 
+insert into library_audit 
+values(:old.rollno,:old.name,:old.dateofissue,:old.nameofbook,:old.status
+,current_timestamp,'delete'); 
+elsif inserting then 
+insert into library_audit 
+values(:new.rollno,:new.name,:new.dateofissue,:new.nameofbook,:new.status
+,current_timestamp,'insert'); 
+end if; 
+end; 
+/ 
+insert into library 
+values(101,'sai',to_date('2017/11/11','yyyy/mm/dd'),'dbms','i'); 
+insert into library 
+values(102,'ram',to_date('2017/12/12','yyyy/mm/dd'),'toc','i'); 
+ 
+SQL> update library set nameofbook = 'spos' where rollno = 101; 
+SQL> delete from library where rollno = 102; 
+ 
+command to drop trigger == 
+SQL> DROP TRIGGER SYSTEM.AT1; 
+DECLARE 
+ roll_no number; 
+ flag int(2); 
+ cursor c_roll(roll_no number) is select *from oldt WHERE id not 
+in(select id from newt where newt.id = oldt.id); 
+ info newt%rowtype; 
+BEGIN 
+ roll_no := &roll_no; 
+ flag := 0; 
+ open c_roll(roll_no); 
+ loop fetch c_roll into info; 
+ exit when c_roll%notfound; 
+ if(info.id = roll_no) THEN insert into newt 
+values(info.id,info.name); --<<----imp 
+ flag:=1; 
+ end if; 
+ end loop; 
+ IF(c_roll%rowcount =0 or flag =0)THEN 
+dbms_output.put_line('you entered wrong roll no'); 
+ ELSE dbms_output.put_line('sucessfull added in new data'); 
+ END IF; 
+ close c_roll; 
+END; 
+/ 
+SQL> insert into newt values(1,'kalpesh'); 
+1 row created. 
+SQL> insert into newt values(3,'jayesh'); 
+1 row created. 
+SQL> insert into oldt values(2,'mayuresh'); 
+1 row created. 
+SQL> insert into oldt values(4,'darshan'); 
+1 row created. 
+SQL> select *from newt; 
+ ID NAME 
+---------- ---------------------------------- 
+ 1 kalpesh 
+ 3 jayesh 
+SQL> select *from oldt; 
+ ID NAME 
+---------- ---------------------------------- 
+ 2 mayuresh 
+ 4 darshan 
+create table stud_marks(roll_no number(12),name varchar2(23),total_marks 
+number(34)); 
+create table result(roll number(12),name varchar2(23),class 
+varchar2(34)); 
+insert into stud_marks values(1,'ganesh',1200); 
+insert into stud_marks values(2,'ram',950); 
+insert into stud_marks values(3,'sai',850); 
+insert into stud_marks values(4,'laxman',800); 
++++++++++++++++++++++++ MAIN PROCEDURE PROCGRADE 
+++++++++++++++++++++++++ 
+create or replace procedure pro_grade( 
+ var_rollno in number, 
+ p_rollno out stud_marks.roll_no%type, 
+ p_name out stud_marks.name%type, 
+ p_totalmarks out stud_marks.total_marks%type) 
+AS ----< here is " 
+AS BEGIN " 
+BEGIN 
+select roll_no,name,total_marks into p_rollno,p_name,p_totalmarks from 
+stud_marks where roll_no = var_rollno; 
+IF p_totalmarks <= 1500 and p_totalmarks >= 990 THEN 
+insert into result values(p_rollno,p_name,'DISTINCTION'); 
+ELSE IF p_totalmarks <= 989 and p_totalmarks >= 900 THEN 
+insert into result values(p_rollno,p_name,'FIRST CLASS'); 
+ELSE IF p_totalmarks <=899 and p_totalmarks >= 825 THEN 
+insert into result values(p_rollno,p_name,'SECOND CLASS'); 
+ELSE 
+insert into result values(p_rollno,p_name,'FAIL'); 
+END IF; 
+END IF; 
+END IF; 
+EXCEPTION 
+WHEN no_data_found then 
+dbms_output.put_line('roll no'|| var_rollno||'not found'); 
+END; 
+/ 
++++++++++++++++++++++++++++++ CALLING PROCEDURE 
+++++++++++++++++++++++++++ 
+DECLARE 
+ var_rollno number(20); 
+ p_rollno stud_marks.roll_no%type; 
+ p_name stud_marks.name%type; 
+ p_totalmarks stud_marks.total_marks%type; 
+BEGIN 
+ var_rollno := & roll_no; 
+ pro_grade(var_rollno,p_rollno,p_name,p_totalmarks); 
+END; 
+/ 
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+SQL> create table areas(radius number(12),area number(23,2)); 
+declare 
+radius number(12) ; 
+area number(23,2); 
+pi constant number(4,2) := 3.14; 
+begin 
+radius := 5; 
+while radius < 10 --< no semi colon for while and any loop 
+loop 
+area := pi*power(radius,2); 
+insert into areas values(radius,area); 
+radius := radius +1; 
+end loop; 
+end; 
+ / 
+output = 
+SQL> select *From areas; 
+ RADIUS AREA 
+---------- ---------- 
+ 5 78.5 
+ 6 113.04 
+ 7 153.86 
+ 8 200.96 
+ 9 254.34 
+declare 
+radius number(23); 
+pi constant number(4,2) := 3.14; 
+area number(23,2); 
+begin 
+radius := 5; 
+while radius < 10 
+loop 
+area:=pi*power(radius,2); 
+insert into areas values(radius,area); 
+radius := radius + 1; 
+end loop; 
+end; 
+/ 
+DECLARE 
+ p_rollno number(16); 
+ p_nameofbook char(13); 
+ p_dateofissue date; 
+ noofdays number(4); 
+ currentdate date; 
+ nodata EXCEPTION; 
+ amount number(34); 
+BEGIN 
+ p_rollno := &roll_no; 
+ p_nameofbook := '&nameofbook'; 
+ currentdate := trunc(SYSDATE); 
+IF p_rollno <=0 THEN 
+ RAISE nodata; 
+END IF; 
+ select dateofissue into p_dateofissue from borrower where roll_no = 
+p_rollno and nameofbook = p_nameofbook; 
+ select currentdate-p_dateofissue into noofdays from dual; 
+ dbms_output.put_line('no of days = '||noofdays); 
+IF noofdays>30 THEN amount:=noofdays*50; 
+ELSIF(noofdays >= 15 AND noofdays <=30) THEN amount:=noofdays*5; 
+END IF; 
+IF amount > 0 THEN 
+ INSERT INTO fine values(p_rollno,sysdate,amount); 
+END IF; 
+ UPDATE borrower SET status = 'r' where roll_no = p_rollno; 
+EXCEPTION 
+WHEN nodata THEN 
+ dbms_output.put_line('ROLL NUMBER NOT FOUND'); 
+END; 
+/ 
+DECLARE 
+ p_rollno number(16); 
+ p_nameofbook char(13); 
+ p_dateofissue date; 
+ noofdays number(4); 
+ currentdate date; 
+ no_data_found EXCEPTION; 
+ amount number(34); 
+BEGIN 
+ p_rollno := &roll_no; 
+ p_nameofbook := '&nameofbook'; 
+ currentdate := trunc(SYSDATE); 
+IF p_rollno >0 THEN 
+ select dateofissue into p_dateofissue from borrower where roll_no = 
+p_rollno and nameofbook = p_nameofbook; 
+ select currentdate-p_dateofissue into noofdays from dual; 
+ dbms_output.put_line('no of days = '||noofdays); 
+END IF; 
+ 
+IF noofdays>30 THEN amount:=noofdays*50; 
+ELSIF(noofdays >= 15 AND noofdays <=30) THEN amount:=noofdays*5; 
+END IF; 
+IF amount > 0 THEN 
+ INSERT INTO fine values(p_rollno,sysdate,amount); 
+END IF; 
+ UPDATE borrower SET status = 'r' where roll_no = p_rollno; 
+EXCEPTION 
+WHEN no_data_found THEN 
+ dbms_output.put_line('ROLL NUMBER NOT FOUND'); 
+END; 
+/ 
+create table Companies(comp_id VARCHAR(10), name VARCHAR(20), cost int , 
+year int); 
+create table Orders(comp_id VARCHAR(10), domain VARCHAR(20), quantity 
+int); 
+desc Companies; 
+desc Orders; 
+ insert into Companies values('C001','ONGC',2000,2010); 
+ insert into Companies values('C002','HPCL',2500,2012); 
+ insert into Companies values('C005','IOCL',1000,2014); 
+ insert into Companies values('C006','BHEL',3000,2015); 
+ insert into Orders values('C001','Oil',109); 
+ insert into Orders values('C002','Gas',121); 
+ insert into Orders values('C007','telecom',115); 
+ insert into Orders values('C008','IT',141); 
+ select * from Companies; 
+ select * from Orders; 
+--Q1: Find names, costs, domains and quantities for companies using inner 
+join. 
+ select Companies.name, Companies.cost, Orders.domain, Orders.quantity 
+ FROM Companies 
+ INNER JOIN Orders 
+ ON Companies.comp_id=Orders.comp_id; 
+-- Q2: Find names, costs, domains and quantities for companies using left 
+outer join. 
+ select Companies.name, Companies.cost, Orders.domain, Orders.quantity 
+ FROM Companies 
+ LEFT OUTER JOIN Orders 
+ ON Companies.comp_id=Orders.comp_id; 
+-- Q3: Find names, costs, domains and quantities for companies using 
+right outer join 
+ select Companies.name, Companies.cost, Orders.domain, Orders.quantity 
+ FROM Companies 
+ RIGHT OUTER JOIN Orders 
+ ON Companies.comp_id=Orders.comp_id; 
+-- Q4: Find names, costs, domains and quantities for companies using 
+Union operator. 
+ select name,cost 
+ from Companies 
+ UNION 
+ select domain,quantity 
+ from Orders; 
+-- Q5.Create View View1 by selecting both tables to show company name and 
+quantities 
+ create VIEW View1 AS 
+ select name,quantity 
+ from Companies,Orders where companies.comp_id = orders.comp_id; 
+ select * from View1; 
+-- Q6. Create View2 on branch table by selecting any two columns and 
+perform insert update delete operations 
+ create VIEW View2 AS 
+ select comp_id,name from Companies; 
+ select * from View2; 
+ UPDATE View2 SET name='BHEL1' where comp_id='C006'; 
+ INSERT INTO VIEW2(comp_id,name) VALUES(12,"kalpesh"); 
+ select * from View2; 
+mysql> select * from View2; 
++---------+---------+ 
+| comp_id | name | 
++---------+---------+ 
+| C001 | ONGC | 
+| C002 | HPCL | 
+| C005 | IOCL | 
+| C006 | BHEL1 | 
+| 12 | kalpesh | 
++---------+---------+ 
+mysql> delete from view2 where name = "kalpesh"; 
+mysql> select * from View2; 
++---------+-------+ 
+| comp_id | name | 
++---------+-------+ 
+| C001 | ONGC | 
+| C002 | HPCL | 
+| C005 | IOCL | 
+| C006 | BHEL1 | 
++---------+-------+ 
+mysql> create database P2; 
+Query OK, 1 row affected (0.01 sec) 
+mysql> use P2; 
+Database changed 
+mysql> create table employee (emp_name varchar(10) primary key, street 
+varchar(10), city varchar(10) ); 
+Query OK, 0 rows affected (0.02 sec) 
+mysql> create table company (comp_name varchar(10) primary key, city 
+varchar(10)); 
+Query OK, 0 rows affected (0.01 sec) 
+mysql> create table work (emp_name varchar(10), comp_name varchar(10), 
+salary int, foreign key (emp_name) references employee (emp_name), 
+foreign key (comp_name) references company (comp_name) ); 
+Query OK, 0 rows affected (0.02 sec) 
+mysql> create table manages (emp_name varchar(10), manager_name 
+varchar(10),foreign key (emp_name) references employee (emp_name) ); 
+Query OK, 0 rows affected (0.02 sec) 
+mysql> show tables; 
++--------------+ 
+| Tables_in_p2 | 
++--------------+ 
+| company | 
+| employee | 
+| manages | 
+| work | 
++--------------+ 
+4 rows in set (0.00 sec) 
+mysql> insert into company values ("TCS" , "Pune"); 
+Query OK, 1 row affected (0.00 sec) 
+mysql> insert into company values ("Infosys" , "Pune"); 
+Query OK, 1 row affected (0.00 sec) 
+mysql> insert into company values ("TechM" , "Pune"); 
+Query OK, 1 row affected (0.00 sec) 
+mysql> select * from company; 
++-----------+------+ 
+| comp_name | city | 
++-----------+------+ 
+| Infosys | Pune | 
+| TCS | Pune | 
+| TechM | Pune | 
++-----------+------+ 
+3 rows in set (0.00 sec) 
+mysql> insert into employee values ("Abhi" , "Homeguard" , "Pune");
+Query OK, 1 row affected (0.00 sec) 
+mysql> insert into employee values ("Vivek" , "KP" , "Pune"); 
+Query OK, 1 row affected (0.00 sec) 
+mysql> insert into employee values ("Saurabh" , "Phulenagar" , "Pune"); 
+Query OK, 1 row affected (0.00 sec) 
+mysql> insert into employee values ("Mukesh" , "Wadi" , "Pune"); 
+Query OK, 1 row affected (0.00 sec) 
+mysql> insert into employee values ("Sandesh" , "Station" , "Pune"); 
+Query OK, 1 row affected (0.00 sec) 
+mysql> select * from employee; 
++----------+------------+------+ 
+| emp_name | street | city | 
++----------+------------+------+ 
+| Abhi | Homeguard | Pune | 
+| Mukesh | Wadi | Pune | 
+| Sandesh | Station | Pune | 
+| Saurabh | Phulenagar | Pune | 
+| Vivek | KP | Pune | 
++----------+------------+------+ 
+5 rows in set (0.00 sec) 
+mysql> insert into work values ("Abhi" , "Infosys" ,60000); 
+Query OK, 1 row affected (0.00 sec) 
+mysql> insert into work values ("Mukush" , "TechM" ,40000); 
+ERROR 1452 (23000): Cannot add or update a child row: a foreign key 
+constraint fails (`p2`.`work`, CONSTRAINT `work_ibfk_1` FOREIGN KEY 
+(`emp_name`) REFERENCES `employee` (`emp_name`)) 
+mysql> insert into work values ("Mukesh" , "TechM" ,40000); 
+Query OK, 1 row affected (0.00 sec) 
+mysql> insert into work values ("Sandesh" , "TCS" , 45000); 
+Query OK, 1 row affected (0.00 sec) 
+mysql> insert into work values ("Saurabh" , "Infosys" , 55000); 
+Query OK, 1 row affected (0.00 sec) 
+mysql> insert into work values ("Vivek" , "Infosys" , 50000); 
+Query OK, 1 row affected (0.00 sec) 
+mysql> select * from work; 
++----------+-----------+--------+ 
+| emp_name | comp_name | salary | 
++----------+-----------+--------+ 
+| Abhi | Infosys | 60000 | 
+| Mukesh | TechM | 40000 | 
+| Sandesh | TCS | 45000 | 
+| Saurabh | Infosys | 55000 | 
+| Vivek | Infosys | 50000 | 
++----------+-----------+--------+ 
+5 rows in set (0.00 sec) 
+mysql> insert into manages values ("Abhi" , "Pratik"); 
+Query OK, 1 row affected (0.00 sec) 
+mysql> insert into manages values ("Saurabh" , "Pratik"); 
+Query OK, 1 row affected (0.00 sec) 
+mysql> insert into manages values ("Vivek" , "Pratik"); 
+Query OK, 1 row affected (0.00 sec) 
+mysql> insert into manages values ("Mukesh" , "Mahesh");
+Query OK, 1 row affected (0.00 sec) 
+mysql> insert into manages values ("Sandesh" , "Tejas"); 
+Query OK, 1 row affected (0.00 sec) 
+mysql> select * from manages; 
++----------+--------------+ 
+| emp_name | manager_name | 
++----------+--------------+ 
+| Abhi | Pratik | 
+| Saurabh | Pratik | 
+| Vivek | Pratik | 
+| Mukesh | Mahesh | 
+| Sandesh | Tejas | 
++----------+--------------+ 
+5 rows in set (0.00 sec) 
+###################Queries############################# 
+1. Find the names of all employees who work for ‘TCS’. 
+mysql> select emp_name, comp_name from work where comp_name = "Infosys"; 
++----------+-----------+ 
+| emp_name | comp_name | 
++----------+-----------+ 
+| Abhi | Infosys | 
+| Saurabh | Infosys | 
+| Vivek | Infosys | 
++----------+-----------+ 
+3 rows in set (0.00 sec) 
+2. Find the names and company names of all employees sorted in 
+ascending order of company name and descending order of employee names of 
+that company. 
+mysql> select emp_name, comp_name from work order by emp_name desc, 
+comp_name asc; 
++----------+-----------+ 
+| emp_name | comp_name | 
++----------+-----------+ 
+| Vivek | Infosys | 
+| Saurabh | Infosys | 
+| Sandesh | TCS | 
+| Mukesh | TechM | 
+| Abhi | Infosys | 
++----------+-----------+ 
+5 rows in set (0.00 sec) 
+3. Change the city of employee working with InfoSys to ‘Bangalore’. 
+4. Find the names of all employees who earn more than the average 
+salary of all employees of their company. Assume that all people work for 
+at most one company. 
+mysql> select work.emp_name,work.salary from work having salary > 
+avg(salary); 
++----------+--------+ 
+| emp_name | salary | 
++----------+--------+ 
+| Abhi | 60000 | 
++----------+--------+ 
+1 row in set (0.00 sec) 
+5. Find the names, street address, and cities of residence for all 
+employees who work for 'TechM' and earn more than $10,000. 
+mysql> select employee.emp_name,employee.street,employee.city from 
+employee , work where comp_name = "TechM" and salary >= 10000 and 
+work.emp_name=employee.emp_name; 
++----------+--------+------+ 
+| emp_name | street | city | 
++----------+--------+------+ 
+| Mukesh | Wadi | Pune | 
++----------+--------+------+ 
+1 row in set (0.00 sec) 
+6. Change name of table Manages to Management. 
+mysql> Alter table manages 
+ -> Rename to management; 
+Query OK, 0 rows affected (0.02 sec) 
+mysql> select * from management; 
++----------+--------------+ 
+| emp_name | manager_name | 
++----------+--------------+ 
+| Abhi | Pratik | 
+| Saurabh | Pratik | 
+| Vivek | Pratik | 
+| Mukesh | Mahesh | 
+| Sandesh | Tejas | 
++----------+--------------+ 
+5 rows in set (0.01 sec) 
+7. Add Column Asset to Company table. 
+mysql> Alter table company Add asset int; 
+Query OK, 0 rows affected (0.01 sec) 
+Records: 0 Duplicates: 0 Warnings: 0 
+mysql> select * from company; 
++-----------+------+-------+ 
+| comp_name | city | asset | 
++-----------+------+-------+ 
+| Infosys | Pune | NULL | 
+| TCS | Pune | NULL | 
+| TechM | Pune | NULL | 
++-----------+------+-------+ 
+3 rows in set (0.00 sec) 
+
+-- create table Employee(employee_name VARCHAR(20), street VARCHAR(20), 
+city VARCHAR(20), PRIMARY KEY(employee_name)); 
+-- create table Works(employee_name VARCHAR(20), company_name 
+VARCHAR(20), salary int NOT NULL, FOREIGN KEY (employee_name) REFERENCES 
+Employee(employee_name)); 
+-- create table Company(company_name VARCHAR(30), city VARCHAR(20)); 
+-- create table Manages(employee_name VARCHAR(20), manager_name 
+VARCHAR(20) NOT NULL, FOREIGN KEY(employee_name) REFERENCES 
+Employee(employee_name)); 
+-- 1. (Employee_name: Sam, Comapny_name: TCS, Salary: 12000) 
+-- insert into Employee values('Sam','Lane1','Pune'); 
+-- insert into Works values('Sam','TCS',12000); 
+-- insert into Company values('TCS','Pune'); 
+-- insert into Manages values('Sam','man1'); 
+-- 2. (Employee_name: Alan, Comapny_name: TCS, Salary: 19500) 
+-- insert into Employee values('Alan','Lane2','Goa'); 
+-- insert into Works values('Alan','TCS',15000); 
+-- insert into Company values('TCS','Pune'); 
+-- insert into Manages values('Alan','man2'); 
+--3. (Employee_name: Max, Comapny_name: InfoSys, Salary: 10500) 
+-- insert into Employee values('Max','Lane3','Goa'); 
+-- insert into Works values('Max','infosys',19000); 
+-- insert into Company values('Infosys','Pune'); 
+-- insert into Manages values('Max','man3'); 
+--4. (Employee_name: Rohan, Comapny_name: InfoSys, Salary: 9500) 
+-- insert into Employee values('Rohan','Lane4','Pune'); 
+-- insert into Works values('Rohan','Accenture',9000); 
+-- insert into Company values('Accenture','Pune'); 
+-- insert into Manages values('Rohan','man4'); 
+--5. (Employee_name: Bill, Comapny_name: TechM, Salary: 7500) 
+-- insert into Employee values('Bill','Lane5','Pune'); 
+-- insert into Works values('Bill','Accenture',7000); 
+-- insert into Company values('Accenture','Pune'); 
+-- insert into Manages values('Bill','man5'); 
+--Q1: Find the names of all employees who work for ‘TCS’. 
+select Works.employee_name FROM Works WHERE Works.company_name='TCS'; 
+--Q2. Find the names and company names of all employees sorted in 
+ascending order of company 
+-- name and descending order of employee names of that company. 
+select Works.employee_name, Works.company_name FROM Works ORDER BY 
+Works.company_name ASC, Works.employee_name DESC; 
+--Q3. Change the city of employee working with InfoSys to ‘Bangalore’. 
+ select Employee.employee_name, Employee.city FROM Employee; 
+ UPDATE Employee SET Employee.city='Banglore' WHERE 
+Employee.employee_name IN(Select Works.employee_name FROM Works WHERE 
+Works.company_name='infosys'); 
+ select Employee.employee_name, Employee.city FROM Employee; 
+--Q4. Find the names of all employees who earn more than the average 
+salary of all employees of their 
+ company. Assume that all people work for at most one company. 
+select Works.employee_name, Works.company_name FROM Works WHERE 
+employee_name IN(select Works.employee_name FROM Works WHERE Works.salary 
+> (select AVG(Works.salary) FROM Works)); 
+--Q5. Find the names, street address, and cities of residence for all 
+employees who work for 'TechM' 
+-- and earn more than $10,000. 
+ select Employee.employee_name, Employee.street, Employee.city FROM 
+Employee 
+ WHERE Employee.employee_name IN(select Works.employee_name FROM Works 
+WHERE Works.company_name='Accenture'); 
+ select Employee.employee_name, Employee.street, Employee.city FROM 
+Employee 
+ WHERE Employee.employee_name IN(select Works.employee_name FROM Works 
+WHERE Works.company_name='Accenture' and Works.salary>8000); 
+--Q6. Change name of table Manages to Management. 
+Alter table Manages RENAME TO Management; 
+--Q7. Add Column Asset to Company table. 
+Alter table Company ADD Assert VARCHAR(20); 
+--desc Company; 
+DECLARE 
+ p_nameofbook char(50); 
+ p_rollno number(30); 
+ p_dateofissue date; 
+ currentdate date; 
+ noofdays number(30); 
+ amount number; 
+ nodata EXCEPTION; 
+BEGIN 
+ p_rollno:=&rollno; 
+ p_nameofbook:='&nameofbook'; 
+ currentdate:=trunc(SYSDATE); 
+ SELECT dateofissue into p_dateofissue FROM Borrower WHERE 
+rollno=p_rollno AND nameofbook=p_nameofbook; 
+ SELECT trunc(SYSDATE) - p_dateofissue INTO noofdays from dual; 
+ dbms_output.put_line('No of Days:'||noofdays); 
+IF (noofdays>30) THEN amount := noofdays*50; 
+ELSIF (noofdays>=15 AND noofdays<=30) THEN amount:=noofdays*5; 
+END IF; 
+IF amount>0 THEN 
+ INSERT INTO Fine values(p_rollno,sysdate,amount); 
+END IF; 
+ UPDATE Borrower SET Status='R' WHERE rollno=p_rollno; 
+END; 
+/ 
+DECLARE 
+ p_nameofbook char(50); 
+ p_rollno number(30); 
+ p_dateofissue date; 
+ currentdate date; 
+ noofdays number(30); 
+ amount number; 
+ nodata EXCEPTION; 
+BEGIN 
+ p_rollno:=&rollno; 
+ p_nameofbook:='&nameofbook'; 
+ currentdate:=trunc(SYSDATE); 
+ SELECT dateofissue into p_dateofissue FROM Borrower WHERE 
+rollno=p_rollno AND nameofbook=p_nameofbook; 
+ SELECT trunc(SYSDATE) - p_dateofissue INTO noofdays from dual; 
+ dbms_output.put_line('No of Days:'||noofdays); 
+IF (noofdays>30) THEN amount := noofdays*50; 
+ELSIF (noofdays>=15 AND noofdays<=30) THEN amount:=noofdays*5; 
+END IF; 
+IF amount>0 THEN 
+ INSERT INTO Fine values(p_rollno,sysdate,amount); 
+END IF; 
+ UPDATE Borrower SET Status='R' WHERE rollno=p_rollno; 
+END; 
+/ 
+CREATE OR REPLACE PROCEDURE grade(var_roll in number,prollno out 
+stud_marks.rollno%type,pname out stud_marks.name%type,ptotal out 
+stud_marks.totalmarks%type)AS 
+BEGIN 
+SELECT rollno,name,totalmarks into prollno,pname,ptotal from stud_marks 
+WHERE rollno=var_roll; 
+IF(ptotal<=1400 AND ptotal>=990)THEN insert into result 
+values(prollno,pname,'distinction'); 
+ELSIF(ptotal<=990 AND ptotal>=900)THEN insert into result 
+values(prollno,pname,'First class'); 
+ELSIF(ptotal<=900 AND ptotal>=825)THEN insert into result 
+values(prollno,pname,'hsc'); 
+ELSE 
+insert into result values(prollno,pname,'fail'); 
+End if; 
+END; 
+/ 
+DECLARE 
+var_roll number(20); 
+prollno stud_marks.rollno%type; 
+pname stud_marks.name%type; 
+ptotal stud_marks.totalmarks%type; 
+BEGIN 
+var_roll:=&var_roll; 
+grade(var_roll,prollno,pname,ptotal); 
+END; 
+/ 
+set serveroutput on 
+DECLARE 
+ rollno number; 
+ flag int(2); 
+ cursor c_roll(rollno number) is select *from oldt WHERE ID not in 
+(SELECT ID FROM newt where newt.id=oldt.id); 
+ info newt%rowtype; 
+BEGIN 
+ rollno:=&rollno; 
+ flag:=0; 
+ open c_roll(rollno); 
+ loop fetch c_roll into info; 
+ exit when c_roll%notfound; 
+ if(info.id=rollno)then insert into newt 
+values(info.id,info.Name); 
+ flag:=1; 
+ end if; 
+ end loop; 
+ if(c_roll%rowcount =0 or flag=0)THEN 
+ dbms_output.put_line('existed'); 
+ else dbms_output.put_line('updated'); 
+ end if; 
+ close c_roll; 
+END; 
+/ 
+use Jayesh 
+db.createCollection("emp") 
+db.emp.insertOne({id:01,name:[{fname:"jay",lname:"chaudhari"}],company:"t
+cs",salary:20000,designation:"programmer",age:20,expertise:["java","pytho
+n","sql"] 
+,dob:"22/08/2002",email:"abc@gmail.com","contact":"123456789","add":{"pad
+d":"pune","ladd":411001}}) 
+db.emp.insertOne({id:02,name:[{fname:"kal",lname:"pat"}],company:"infosys
+",salary:41000,designation:"Tester",age:20,"expertise":["java","python"] 
+,dob:23/02/2002,email:"bcd@gmail.com",contact:"123456789",add:[{padd:"pun
+e",ladd:411001}]}) 
+db.emp.insertMany([{id:03,name:[{fname:"sikh",lname:"man"}],company:"tcs"
+,salary:35000,designation:"developer",age:20,expertise:["java","sql"], 
+dob:24/08/2002,email:"abc@gmail.com",contact:"123456789",add:[{padd:"nash
+ik",ladd:410101}]},{id:04,name:[{fname:"will",lname:"nat"}],company:"goog
+le",salary:25000,designation:"gold 
+digger",age:20,expertise:["mongodb","mysql","cassandra"] 
+,dob:25/08/2002,email:"abc@gmail.com",contact:"123456789",add:[{padd:"Jal
+gaon",ladd:412001}]}]) 
+db.emp.insertOne({id:05,name:[{fname:"vijay",lname:"chaudhari"}],company:
+"infosys",salary:20000,designation:"programmer",age:20,"expertise":["java
+","python","sql"] 
+,dob:28/08/2002,email:"abc@gmail.com",contact:"123456789",add:[{padd:"Dhu
+le",ladd:400900}]}) 
+------------------------------------ 
+db.emp.find().pretty() 
+db.emp.find({designation:"programmer",salary:{$gt:30000}}) 
+db.emp.update({designation:"",ccompany:""},{$set:{age:25}},{upsert:true}) 
+db.emp.find({$or:[{age:{$lt:30}},{salary:{$gt:40000}}]}) 
+db.emp.update({company:"tcs"},{$inc:{salary:2000}},{multi:true}) 
+db.emp.find({designation:{$ne:"developer"}}) 
+db.emp.find({company:"infosys"},{id:1,designation:1,add:1,namme:1}) 
+db.emp.find({designation:{$in:["developer","tester"]}}) 
+db.emp.find({expertise:["mongodb","mysql","cassandra"]}) 
+db.emp.remove({designation:"developer"}) 
+--PL/SQL block for a database trigger on Library table. The System 
+should keep track of the records that are being updated or deleted. 
+The old value of updated or deleted records should be added in 
+Library_Audit table.
+create table library(B_id number, Bname varchar2(20), B_author 
+varchar2(20));
+insert into library values(100, 'Math3', 'Dev'); 
+insert into library values(103, 'Hindi', 'Manik'); 
+insert into library values(102, 'Malyalam','Selvam'); 
+insert into library values(112, 'Marathi','R Vaidya'); 
+create table library_audit(B_id number,Bname varchar2(20),B_author 
+varchar2(20)); 
+create trigger trig1 
+before 
+update or delete 
+on library 
+for each row 
+enable 
+begin 
+insert into library_audit values( 
+ :old.B_id, 
+ :old.Bname, 
+ :old.B_author 
+ ); 
+end; 
+/ 
+select * from library; 
+delete from library where B_id=100; 
+update library set B_id=105 where Bname='Hindi' 
+select * from library; 
+select * from libary_audit; 
+----------------------------------OUTPUT--------------------------------------- 
+--before delete and update table library is 
+B_ID BNAME B_AUTHOR 
+100 Math3 Dev
+103 Hindi Manik
+102 Malyalam Selvam
+112 Marathi R Vaidya 
+--after delete and update table library is
+B_ID BNAME B_AUTHOR 
+105 Hindi Manik
+102 Malyalam Selvam
+112 Marathi R Vaidya 
+--after delete and update table library_audit is 
+B_ID BNAME B_AUTHOR 
+103 Hindi Manik
+100 Math3 Dev
+create table o_roll(roll_no int, name varchar2(20), marks int); 
+insert into o_roll values(14,'JOJO', 78); 
+insert into o_roll values(16,'MOJO', 68); 
+1 row created. 
+SQL> insert into o_roll values(10,'HIRA', 60); 
+1 row created. 
+SQL> insert into o_roll values(20,'SAKI', 45); 
+1 row created. 
+SQL> create table n_roll(roll_no int, name varchar2(20), marks int); 
+Table created. 
+SQL> insert into n_roll values(20,'SAKI', 45); 
+1 row created. 
+declare 
+ 2 rollno number; 
+ 3 flag int(2); 
+ 4 cursor c_roll(rollno number) IS select * from o_roll where roll_no not in (select roll_no from 
+n_roll where n_roll.roll_no=o_roll.roll_no); 
+ 5 info n_roll%rowtype; 
+ 6 begin 
+ 7 rollno:=&rollno; 
+ 8 flag:=0; 
+ 9 open c_roll(rollno); 
+ 10 loop 
+ 11 fetch c_roll into info; 
+ 12 exit when c_roll%notfound; 
+ 13 if(info.roll_no=rollno) then 
+ 14 insert into n_roll values(info.roll_no,info.name,info.marks); 
+ 15 flag:=1; 
+ 16 end if; 
+ 17 end loop; 
+23 close c_roll; 
+ 24 end; 
+ 25 / 
+Enter value for rollno: 10 
+old 7: rollno:=&rollno; 
+new 7: rollno:=10; 
+Record Updated 
+--PL/SQL block a Stored Procedure namely proc_Grade for the categorization of 
+student. If marks scored by students in examination is <=1500 and marks>=990 then 
+student will be placed in distinction category if marks scored are between 989 
+and900 category is first class, if marks899and 825 category is Higher Second 
+Class.
+create table stud_marks(roll_no number(3), name varchar2(20), marks 
+number(5)); 
+create table result(roll_no number(3), name varchar2(20), class 
+varchar2(20)); 
+create procedure Proc_Grade1(roll_no number, name varchar2, marks number) 
+as 
+class varchar2(20); 
+begin 
+if(marks<=1500 and marks>=990) then 
+class:='Distinction'; 
+elsif(marks<=989 and marks>=900) then 
+class:='First Class'; 
+elsif(marks<=899 and marks>=825) then 
+class:='Higher Second Class'; 
+else 
+class:='Pass'; 
+end if; 
+ 
+insert into stud_marks values(roll_no, name, marks); 
+insert into result values(roll_no,name, class); 
+ 
+end; 
+/ 
+exec Proc_Grade1(101, 'Malan', 1400); 
+exec Proc_Grade1(102, 'Sameer', 980); 
+select * from stud_marks; 
+select * from result; 
+------------------------------OUTPUT--------------------------------
+ROLL_NO NAME MARKS 
+102 Sameer 980 
+101 Malan 1400 
+ROLL_NO NAME CLASS 
+102 Sameer First Class 
+101 Malan Distinction 
+
+create or replace function a4(rollno int, name varchar2, marks int) 
+return varchar2 
+is
+ class varchar2(20); 
+ begin 
+ if(marks>=990 and marks<=1500) then 
+ class:='distinction'; 
+ elsif(marks<=989 and marks>=900) then 
+class:='first'; 
+elsif(marks<=899 and marks>=825) then 
+class:='high second'; 
+else 
+class:='Pass'; 
+end if; 
+insert into stud1 values(name, rollno, marks); 
+insert into res1 values(rollno, marks, class); 
+return class; 
+end; 
+/ 
+--PL/SQL block for area of a circle for a value of radius 
+varying from 5 to 9
+create table Areas(Radius number(5) unique, Area number(14,2) 
+unique)
+DECLARE 
+PI CONSTANT number(4,2) := 3.14; 
+Radius number(5) :=5; 
+Area number(14,2); 
+ 
+BEGIN 
+Radius:= 5; 
+while Radius <=9 
+LOOP 
+Area:= PI*(Radius*Radius); 
+--Area:= PI* power(Radius,2); 
+ 
+insert into Areas values(Radius, Area); 
+Radius:=Radius +1; 
+END LOOP; 
+ 
+END;
+/ 
+select * from Areas;
+--------------------------OUTPUT---------------------------------
+RADIUS AREA 
+5 78.5 
+6 113.04 
+7 153.86 
+8 200.96 
+9 254.34 
