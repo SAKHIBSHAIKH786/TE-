@@ -1,0 +1,22 @@
+use Jayesh
+db.createCollection("emp")
+db.emp.insertOne({id:01,name:[{fname:"jay",lname:"chaudhari"}],company:"tcs",salary:20000,designation:"programmer",age:20,expertise:["java","python","sql"]
+,dob:"22/08/2002",email:"abc@gmail.com","contact":"123456789","add":{"padd":"pune","ladd":411001}})
+db.emp.insertOne({id:02,name:[{fname:"kal",lname:"pat"}],company:"infosys",salary:41000,designation:"Tester",age:20,"expertise":["java","python"]
+,dob:23/02/2002,email:"bcd@gmail.com",contact:"123456789",add:[{padd:"pune",ladd:411001}]})
+db.emp.insertMany([{id:03,name:[{fname:"sikh",lname:"man"}],company:"tcs",salary:35000,designation:"developer",age:20,expertise:["java","sql"],
+dob:24/08/2002,email:"abc@gmail.com",contact:"123456789",add:[{padd:"nashik",ladd:410101}]},{id:04,name:[{fname:"will",lname:"nat"}],company:"google",salary:25000,designation:"gold digger",age:20,expertise:["mongodb","mysql","cassandra"]
+,dob:25/08/2002,email:"abc@gmail.com",contact:"123456789",add:[{padd:"Jalgaon",ladd:412001}]}])
+db.emp.insertOne({id:05,name:[{fname:"vijay",lname:"chaudhari"}],company:"infosys",salary:20000,designation:"programmer",age:20,"expertise":["java","python","sql"]
+,dob:28/08/2002,email:"abc@gmail.com",contact:"123456789",add:[{padd:"Dhule",ladd:400900}]})
+------------------------------------
+db.emp.find().pretty()
+db.emp.find({designation:"programmer",salary:{$gt:30000}})
+db.emp.update({designation:"",ccompany:""},{$set:{age:25}},{upsert:true})
+db.emp.find({$or:[{age:{$lt:30}},{salary:{$gt:40000}}]})
+db.emp.update({company:"tcs"},{$inc:{salary:2000}},{multi:true})
+db.emp.find({designation:{$ne:"developer"}})
+db.emp.find({company:"infosys"},{id:1,designation:1,add:1,namme:1})
+db.emp.find({designation:{$in:["developer","tester"]}})
+db.emp.find({expertise:["mongodb","mysql","cassandra"]})
+db.emp.remove({designation:"developer"})

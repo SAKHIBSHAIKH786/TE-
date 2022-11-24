@@ -1,0 +1,54 @@
+i. Empid: Number
+ii. Name: Embedded Doc (FName, LName)
+iii. Company Name: String
+iv. Salary: Number
+v. Designation: String
+vi. Age: Number
+vii. Expertise: Array
+viii. DOB: String or Date
+ix. Email id: String
+x. Contact: String
+xi. Address: Array of Embedded Doc (PAddr, LAddr)
+
+
+db.createCollection("empdb")
+
+db.empdb.insert({empid : 1 , name : [{fname : "Kalpesh" , lname : "Patil"}],company_name :"tcs",salary : 45000 , designation : "developer",age : 22 , expertise : ["backend developer","fullstack developer"],dob:"23/02/2002",email_id : "kpatil1855@gmail.com",contact:"7666145481",address:[{paddr :"jalgaon" , laddr: "425001" }] })
+
+db.empdb.insert({empid : 2 , name : [{fname : "jayesh" , lname : "chaudhari"}],company_name :"tcs",salary : 50000 , designation : "tester",age : 22 , expertise : ["programmer"],dob:"22/8/2002",email_id : "jay@gmail.com",contact:"7666145482",address:[{paddr :"jalgaon" , laddr: "425001" }] })
+
+db.empdb.insert({empid : 3 , name : [{fname : "ruturaj" , lname : "Savakare"}],company_name :"tcs",salary : 50000 , designation : "programmer",age : 22 , expertise : ["programmer"],dob:"22/9/2002",email_id : "rutu@gmail.com",contact:"7666145483",address:[{paddr :"jalgaon" , laddr: "425001" }] })
+
+db.empdb.insert({empid : 4 , name : [{fname : "Sandesh" , lname : "Pabibtwar"}],company_name : "infosys",salary : 50000 , designation : "data scientist",age : 22 , expertise : ["machine learining"],dob:"22/10/2002",email_id : "sandy@gmail.com",contact:"7666145484",address:[{paddr :{city :"pune"}} , {laddr:{ pincode : "411001" }}] })
+
+db.empdb.insert({empid : 5 , name : [{fname : "Atharv" , lname : "Khamkar"}],company_name : "infosys",salary : 50000 , designation : "developer",age : 22 , expertise : ["andoid developer"],dob:"22/11/2002",email_id : "ak@gmail.com",contact:"7666145485",address:[{paddr :{city :"pune"}} , {laddr:{ pincode : "411001" }}] })
+
+db.empdb.insert({empid:6, name : [{fname : "shreyash",lname : "patil"}],company_name : "infosys ",salary : 230000,designation : "developer",age : 34,expertise:["android development","web develpment"],dob : "23/07/1999",email_id : "sp@gmail.com" , contact : "7666145486",address : [{paddr : {city : "pune"}},{laddr :{pincode : "411001"}}]})
+
+1.db.empdb.find({designation : "programmer" , salary : {$gt : 30000}})
+
+2.db.empdb.update({designation : "tester",company_name : "tcs"},{$set : {age : 25}},{upsert : true})   
+
+3.db.empdb.find({$or :[ {age :{$lt : 30}},{salary : {$gt:40000}}]}) 
+
+find city = pune and pincode = 411001
+4. db.empdb.find({address:[{paddr :{city :"pune"}} , {laddr:{ pincode : "411001" }}]}).pretty()
+
+
+increment salary by 2000 when company_name = "tcs"
+5.db.empdb.update({company_name :"tcs"},{$inc: {salary:2000}},{multi:true})     
+
+desingnation not equal to developer
+6.db.empdb.find({designation : {$ne : "developer"}}).pretty()
+
+
+only display id,name,desiganation,address when commpany name = infosys
+7. db.empdb.find({company_name : "infosys"},{empid:1,name : 1,desigantion : 1,adress : 1}).pretty()
+
+display only when designation is only developer or customer
+8. db.empdb.find({designation : {$in:["developer","customer"]}})
+
+9.db.empdb.find({expertise : ['Mongodb','Mysql', 'Cassandra']})
+
+only remove single document when designation = developer
+10. db.empdb.remove({designation : "developer"},1)

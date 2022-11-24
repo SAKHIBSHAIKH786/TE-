@@ -1,0 +1,21 @@
+CREATE OR REPLACE PROCEDURE grade(var_roll in number,prollno out stud_marks.rollno%type,pname out stud_marks.name%type,ptotal out stud_marks.totalmarks%type)AS
+BEGIN
+SELECT rollno,name,totalmarks into prollno,pname,ptotal from stud_marks WHERE rollno=var_roll;
+IF(ptotal<=1400 AND ptotal>=990)THEN insert into result values(prollno,pname,'distinction');
+ELSIF(ptotal<=990 AND ptotal>=900)THEN insert into result values(prollno,pname,'First class');
+ELSIF(ptotal<=900 AND ptotal>=825)THEN insert into result values(prollno,pname,'hsc');
+ELSE
+insert into result values(prollno,pname,'fail');
+End if;
+END;
+/
+DECLARE
+var_roll number(20);
+prollno stud_marks.rollno%type;
+pname stud_marks.name%type;
+ptotal stud_marks.totalmarks%type;
+BEGIN
+var_roll:=&var_roll;
+grade(var_roll,prollno,pname,ptotal);
+END;
+/

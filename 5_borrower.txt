@@ -1,0 +1,62 @@
+DECLARE
+     p_rollno number(16);
+     p_nameofbook char(13);
+     p_dateofissue date;
+     noofdays number(4);
+     currentdate date;
+     nodata EXCEPTION;
+     amount number(34);
+BEGIN 
+     p_rollno := &roll_no;
+     p_nameofbook := '&nameofbook';
+     currentdate := trunc(SYSDATE);
+IF p_rollno  <=0 THEN
+     RAISE nodata;
+END IF;
+     select dateofissue into p_dateofissue from borrower where roll_no = p_rollno and nameofbook = p_nameofbook;
+     select currentdate-p_dateofissue into noofdays from dual;
+     dbms_output.put_line('no of days = '||noofdays);
+IF noofdays>30 THEN  amount:=noofdays*50;
+ELSIF(noofdays >= 15 AND noofdays <=30) THEN amount:=noofdays*5;
+END IF;
+IF amount > 0 THEN
+      INSERT INTO fine values(p_rollno,sysdate,amount);
+END IF;
+      UPDATE borrower SET status = 'r' where roll_no = p_rollno;
+EXCEPTION 
+WHEN nodata THEN 
+      dbms_output.put_line('ROLL NUMBER NOT FOUND');
+
+END;
+/
+
+DECLARE
+     p_rollno number(16);
+     p_nameofbook char(13);
+     p_dateofissue date;
+     noofdays number(4);
+     currentdate date;
+     no_data_found EXCEPTION;
+     amount number(34);
+BEGIN 
+     p_rollno := &roll_no;
+     p_nameofbook := '&nameofbook';
+     currentdate := trunc(SYSDATE);
+IF p_rollno >0 THEN
+     select dateofissue into p_dateofissue from borrower where roll_no = p_rollno and nameofbook = p_nameofbook;
+     select currentdate-p_dateofissue into noofdays from dual;
+     dbms_output.put_line('no of days = '||noofdays);
+END IF;
+     
+IF noofdays>30 THEN  amount:=noofdays*50;
+ELSIF(noofdays >= 15 AND noofdays <=30) THEN amount:=noofdays*5;
+END IF;
+IF amount > 0 THEN
+      INSERT INTO fine values(p_rollno,sysdate,amount);
+END IF;
+      UPDATE borrower SET status = 'r' where roll_no = p_rollno;
+EXCEPTION 
+WHEN no_data_found THEN 
+      dbms_output.put_line('ROLL NUMBER NOT FOUND');
+END;
+/

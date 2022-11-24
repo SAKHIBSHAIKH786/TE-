@@ -1,0 +1,225 @@
+mysql> create database P2;
+Query OK, 1 row affected (0.01 sec)
+
+mysql> use P2;
+Database changed
+
+mysql> create table employee (emp_name varchar(10) primary key, street varchar(10), city varchar(10) );
+Query OK, 0 rows affected (0.02 sec)
+
+mysql> create table company (comp_name varchar(10) primary key, city varchar(10));
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> create table work (emp_name varchar(10), comp_name varchar(10), salary int, foreign key (emp_name) references employee (emp_name), foreign key (comp_name) references company (comp_name) );
+Query OK, 0 rows affected (0.02 sec)
+
+mysql> create table manages (emp_name varchar(10), manager_name varchar(10),foreign key (emp_name) references employee (emp_name) );
+Query OK, 0 rows affected (0.02 sec)
+
+mysql> show tables;
++--------------+
+| Tables_in_p2 |
++--------------+
+| company      |
+| employee     |
+| manages      |
+| work         |
++--------------+
+4 rows in set (0.00 sec)
+
+mysql> insert into company values ("TCS" , "Pune");
+Query OK, 1 row affected (0.00 sec)
+
+mysql> insert into company values ("Infosys" , "Pune");
+Query OK, 1 row affected (0.00 sec)
+
+mysql> insert into company values ("TechM" , "Pune");
+Query OK, 1 row affected (0.00 sec)
+
+mysql> select * from company;
++-----------+------+
+| comp_name | city |
++-----------+------+
+| Infosys   | Pune |
+| TCS       | Pune |
+| TechM     | Pune |
++-----------+------+
+3 rows in set (0.00 sec)
+
+mysql> insert into employee values ("Abhi" , "Homeguard" , "Pune");
+Query OK, 1 row affected (0.00 sec)
+
+mysql> insert into employee values ("Vivek" , "KP" , "Pune");
+Query OK, 1 row affected (0.00 sec)
+
+mysql> insert into employee values ("Saurabh" , "Phulenagar" , "Pune");
+Query OK, 1 row affected (0.00 sec)
+
+mysql> insert into employee values ("Mukesh" , "Wadi" , "Pune");
+Query OK, 1 row affected (0.00 sec)
+
+mysql> insert into employee values ("Sandesh" , "Station" , "Pune");
+Query OK, 1 row affected (0.00 sec)
+
+mysql> select * from employee;
++----------+------------+------+
+| emp_name | street     | city |
++----------+------------+------+
+| Abhi     | Homeguard  | Pune |
+| Mukesh   | Wadi       | Pune |
+| Sandesh  | Station    | Pune |
+| Saurabh  | Phulenagar | Pune |
+| Vivek    | KP         | Pune |
++----------+------------+------+
+5 rows in set (0.00 sec)
+
+mysql> insert into work values ("Abhi" , "Infosys" ,60000);
+Query OK, 1 row affected (0.00 sec)
+
+mysql> insert into work values ("Mukush" , "TechM" ,40000);
+ERROR 1452 (23000): Cannot add or update a child row: a foreign key constraint fails (`p2`.`work`, CONSTRAINT `work_ibfk_1` FOREIGN KEY (`emp_name`) REFERENCES `employee` (`emp_name`))
+mysql> insert into work values ("Mukesh" , "TechM" ,40000);
+Query OK, 1 row affected (0.00 sec)
+
+mysql> insert into work values ("Sandesh" , "TCS" , 45000);
+Query OK, 1 row affected (0.00 sec)
+
+mysql> insert into work values ("Saurabh" , "Infosys" , 55000);
+Query OK, 1 row affected (0.00 sec)
+
+mysql> insert into work values ("Vivek" , "Infosys" , 50000);
+Query OK, 1 row affected (0.00 sec)
+
+mysql> select * from work;
++----------+-----------+--------+
+| emp_name | comp_name | salary |
++----------+-----------+--------+
+| Abhi     | Infosys   |  60000 |
+| Mukesh   | TechM     |  40000 |
+| Sandesh  | TCS       |  45000 |
+| Saurabh  | Infosys   |  55000 |
+| Vivek    | Infosys   |  50000 |
++----------+-----------+--------+
+5 rows in set (0.00 sec)
+
+mysql> insert into manages values ("Abhi" , "Pratik");
+Query OK, 1 row affected (0.00 sec)
+
+mysql> insert into manages values ("Saurabh" , "Pratik");
+Query OK, 1 row affected (0.00 sec)
+
+mysql> insert into manages values ("Vivek" , "Pratik");
+Query OK, 1 row affected (0.00 sec)
+
+mysql> insert into manages values ("Mukesh" , "Mahesh");
+Query OK, 1 row affected (0.00 sec)
+
+mysql> insert into manages values ("Sandesh" , "Tejas");
+Query OK, 1 row affected (0.00 sec)
+
+mysql> select * from manages;
++----------+--------------+
+| emp_name | manager_name |
++----------+--------------+
+| Abhi     | Pratik       |
+| Saurabh  | Pratik       |
+| Vivek    | Pratik       |
+| Mukesh   | Mahesh       |
+| Sandesh  | Tejas        |
++----------+--------------+
+5 rows in set (0.00 sec)
+
+
+###################Queries#############################
+
+1.	Find the names of all employees who work for ‘TCS’.
+
+mysql> select emp_name, comp_name from work where comp_name = "Infosys";
++----------+-----------+
+| emp_name | comp_name |
++----------+-----------+
+| Abhi     | Infosys   |
+| Saurabh  | Infosys   |
+| Vivek    | Infosys   |
++----------+-----------+
+3 rows in set (0.00 sec)
+
+
+2.	Find the names and company names of all employees sorted in ascending order of company name and descending order of employee names of that company.
+
+mysql> select emp_name, comp_name from work order by emp_name desc, comp_name asc;
++----------+-----------+
+| emp_name | comp_name |
++----------+-----------+
+| Vivek    | Infosys   |
+| Saurabh  | Infosys   |
+| Sandesh  | TCS       |
+| Mukesh   | TechM     |
+| Abhi     | Infosys   |
++----------+-----------+
+5 rows in set (0.00 sec)
+
+
+3.	Change the city of employee working with InfoSys to ‘Bangalore’.
+
+
+
+4.	Find the names of all employees who earn more than the average salary of all employees of their company. Assume that all people work for at most one company.
+
+mysql> select work.emp_name,work.salary from work having salary > avg(salary);
++----------+--------+
+| emp_name | salary |
++----------+--------+
+| Abhi     |  60000 |
++----------+--------+
+1 row in set (0.00 sec)
+
+
+
+5.	Find the names, street address, and cities of residence for all employees who work for 'TechM' and earn more than $10,000.
+
+mysql> select employee.emp_name,employee.street,employee.city from employee , work where comp_name = "TechM" and salary >= 10000 and work.emp_name=employee.emp_name;
++----------+--------+------+
+| emp_name | street | city |
++----------+--------+------+
+| Mukesh   | Wadi   | Pune |
++----------+--------+------+
+1 row in set (0.00 sec)
+
+
+6.	Change name of table Manages to Management.
+
+mysql> Alter table manages
+    -> Rename to management;
+Query OK, 0 rows affected (0.02 sec)
+
+mysql> select * from management;
++----------+--------------+
+| emp_name | manager_name |
++----------+--------------+
+| Abhi     | Pratik       |
+| Saurabh  | Pratik       |
+| Vivek    | Pratik       |
+| Mukesh   | Mahesh       |
+| Sandesh  | Tejas        |
++----------+--------------+
+5 rows in set (0.01 sec)
+
+
+7.	Add Column Asset to Company table. 
+
+mysql> Alter table company Add asset int;
+Query OK, 0 rows affected (0.01 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> select * from company;
++-----------+------+-------+
+| comp_name | city | asset |
++-----------+------+-------+
+| Infosys   | Pune |  NULL |
+| TCS       | Pune |  NULL |
+| TechM     | Pune |  NULL |
++-----------+------+-------+
+3 rows in set (0.00 sec)
+
+

@@ -1,0 +1,97 @@
+Q.1) Return Designation with salary is above 20000.
+kalpesh> db.empdb.aggregate([{$group:{_id:"$designation",total:{$sum:"$salary"}}},{$match:{total:{$gt:200000}}}])
+[
+  { _id: 'tester', total: 52000 },
+  { _id: 'programmer', total: 52000 },
+  { _id: 'data scientist', total: 50000 },
+  { _id: 'developer', total: 275000 }
+]
+
+Q.2) Find Employee with total salary for Each City with Designation=”DBA”
+kalpesh> db.empdb.aggregate([{$match:{designation:"developer"}},{$group:{_id:"$address.paddr.city",salarySum:{$sum:"$salary"}}}])
+[
+  { _id: [ 'pune' ], salarySum: 230000 },
+  { _id: [], salarySum: 45000 }
+]
+
+Q.3) Find total salary of Employee with Designation=”DBA” for Each Company.
+kalpesh> db.empdb.aggregate([{$match:{designation:"developer"}},{$group:{_id:"$company_name",salarySum:{$sum:"$salary"}}}])
+[
+  { _id: 'infosys ', salarySum: 230000 },
+  { _id: 'tcs', salarySum: 45000 }
+]
+
+Q.5) Count all records from collection
+kalpesh> db.empdb.aggregate([{$group:{_id:null,count:{$sum:1}}}])
+[ { _id: null, count: 5 } ]
+
+Q.6) For each unique designation find avg salary and output is sorted by AvgSal.
+kalpesh> db.empdb.aggregate([{$group:{_id:"$designation",avgSal:{$avg:"$salary"}}},{$sort:{avgSal:1}}])
+[
+  { _id: 'data scientist', avgSal: 50000 },
+  { _id: 'tester', avgSal: 52000 },
+  { _id: 'programmer', avgSal: 52000 },
+  { _id: 'developer', avgSal: 137500 }
+]
+
+Q.7) Return separate values in the Experitise array where Name of Employee = “Swapnil”
+kalpesh> db.empdb.aggregate([{$unwind:"$expertise"},{$match:{"name.fname":"shreyash"}}])
+[
+  {
+    _id: ObjectId("637cc9095af7cc2337b30094"),
+    empid: 6,
+    name: [ { fname: 'shreyash', lname: 'patil' } ],
+    company_name: 'infosys ',
+    salary: 230000,
+    designation: 'developer',
+    age: 34,
+    expertise: 'android development',
+    dob: '23/07/1999',
+    email_id: 'sp@gmail.com',
+    contact: '7666145486',
+    address: [ { paddr: { city: 'pune' } }, { laddr: { pincode: '411001' } } ]
+  },
+  {
+    _id: ObjectId("637cc9095af7cc2337b30094"),
+    empid: 6,
+    name: [ { fname: 'shreyash', lname: 'patil' } ],
+    company_name: 'infosys ',
+    salary: 230000,
+    designation: 'developer',
+    age: 34,
+    expertise: 'web develpment',
+    dob: '23/07/1999',
+    email_id: 'sp@gmail.com',
+    contact: '7666145486',
+    address: [ { paddr: { city: 'pune' } }, { laddr: { pincode: '411001' } } ]
+  }
+]
+
+Q.8) Return separate values in Expertise array and return sum of each element of array
+kalpesh> db.empdb.aggregate([{$group:{_id:"$designation",Sum:{$sum:1}}}])
+[
+  { _id: 'data scientist', Sum: 1 },
+  { _id: 'tester', Sum: 1 },
+  { _id: 'developer', Sum: 2 },
+  { _id: 'programmer', Sum: 1 }
+]
+
+Q.9) Return array for Designation whose adress in “Pune”
+kalpesh> db.empdb.aggregate([{$match:{"address.paddr.city":"pune"}},{$group:{_id:"$adress.paddr.city",Array_designation:{$push:"$designation"}}}])
+[ { _id: null, Array_designation: [ 'data scientist', 'developer' ] } ]
+
+Q.10) Return Max and Min Salary for each company.
+kalpesh> db.empdb.aggregate([{$group:{_id:"$company_name", minSalary:{$min:"$salary"}}}])
+[
+  { _id: 'tcs', minSalary: 45000 },
+  { _id: 'infosys', minSalary: 50000 },
+  { _id: 'infosys ', minSalary: 230000 }
+]
+kalpesh> db.empdb.aggregate([{$group:{_id:"$company_name", maxSalary:{$max:"$salary"}}}])
+[
+  { _id: 'tcs', maxSalary: 52000 },
+  { _id: 'infosys', maxSalary: 50000 },
+  { _id: 'infosys ', maxSalary: 230000 }
+]
+
+
